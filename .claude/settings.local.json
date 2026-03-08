@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install -g @nestjs/cli)",
+      "Bash(nest new app --package-manager npm --skip-git)"
+    ]
+  }
+}
