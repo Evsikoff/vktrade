@@ -40,16 +40,20 @@ export class VkPaymentsService {
       throw new NotFoundException(`Item "${itemId}" not found`);
     }
 
-    return {
-      response: {
-        title: found.title,
-        price: found.price,
-        photo_url: found.photo_url,
-        discount: found.discount,
-        item_id: found.item_id,
-        expiration: found.expiration,
-      },
+    const itemData = {
+      title: found.title,
+      price: found.price,
+      photo_url: found.photo_url,
+      discount: found.discount,
+      item_id: found.item_id,
+      expiration: found.expiration,
     };
+
+    if (params['site'] === 'OK') {
+      return itemData;
+    }
+
+    return { response: itemData };
   }
 
   handleOrderStatusChange(params: Record<string, string>) {
