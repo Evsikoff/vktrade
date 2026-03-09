@@ -4,10 +4,20 @@
 		"id" : 1,
 		"app_id" : 54475142,
 		"title" : "100 единиц энергии",
-		"price" : 90,
+		"price" : 8,
 		"photo_url" : "https:\/\/psv4.userapi.com\/s\/v1\/d2\/9AU269Ce9XxCvdXDezGEiQd9CioR9V-jk8Cc_Y3wGBn3IMWLUD6UxZdMOzJ-hEMWKst2lgpncb2KFQVpgbfouLGCZR61E-7zQAX6y3dn4NksR8SPYSwkth7M0tn4fi14m0x4z1WPHA-c\/100energ.png",
 		"discount" : 0,
 		"item_id" : "energy_pack_100",
+		"expiration" : 3600
+	},
+	{
+		"id" : 2,
+		"app_id" : 54475142,
+		"title" : "100 единиц энергии",
+		"price" : 4,
+		"photo_url" : "https:\/\/psv4.userapi.com\/s\/v1\/d2\/9AU269Ce9XxCvdXDezGEiQd9CioR9V-jk8Cc_Y3wGBn3IMWLUD6UxZdMOzJ-hEMWKst2lgpncb2KFQVpgbfouLGCZR61E-7zQAX6y3dn4NksR8SPYSwkth7M0tn4fi14m0x4z1WPHA-c\/100energ.png",
+		"discount" : 50,
+		"item_id" : "energy_pack_100_promo",
 		"expiration" : 3600
 	}
 ]}
