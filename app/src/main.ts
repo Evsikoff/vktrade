@@ -6,6 +6,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalInterceptors(new LoggingInterceptor());
 
+  // Log every incoming request at Express level (before NestJS routing)
+  app.use((req, res, next) => {
+    console.log(`[RAW] → ${req.method} ${req.url} | content-type: ${req.headers['content-type'] ?? 'none'}`);
+    next();
+  });
+
   // Accept raw text body so we can parse the custom key=value&... format
   app.use((req, res, next) => {
     if (req.headers['content-type']?.includes('text/plain') ||

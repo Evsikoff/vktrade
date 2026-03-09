@@ -3,10 +3,8 @@ import {
   Post,
   Body,
   BadRequestException,
-  RawBodyRequest,
-  Req,
+  HttpCode,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { VkPaymentsService } from './vk-payments.service';
 
 @Controller('vk')
@@ -14,6 +12,7 @@ export class VkPaymentsController {
   constructor(private readonly vkPaymentsService: VkPaymentsService) {}
 
   @Post('callback')
+  @HttpCode(200)
   handleCallback(@Body() body: string): object {
     // body is a raw URL-encoded string, e.g. "app_id=123&item=sale_item_1&..."
     const params = this.parseParams(body);
