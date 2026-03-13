@@ -17,9 +17,20 @@ export class VkPaymentsController {
 
   @Post('callback')
   @HttpCode(200)
-  handlePostCallback(@Body() body: string): object {
+  handlePostCallback(
+    @Body() body: string,
+    @Res({ passthrough: true }) res: Response,
+  ): object {
     const params = this.parseParams(body);
-    return this.processCallback(params);
+    try {
+      return this.processCallback(params);
+    } catch (e: any) {
+      if (params['site'] === 'OK' && e.response && e.response.error_code) {
+        res.setHeader('Invocation-error', e.response.error_code.toString());
+        return e.response;
+      }
+      throw e;
+    }
   }
 
   @Get('callback')
@@ -55,7 +66,8 @@ export class VkPaymentsController {
 
     if (
       notificationType === 'get_item' ||
-      notificationType === 'get_item_test'
+      notificationType === 'get_item_test' ||
+      method === 'callbacks.getCustomProductInfo'
     ) {
       result = this.vkPaymentsService.handleGetItem(params);
     } else if (
@@ -77,13 +89,10 @@ export class VkPaymentsController {
     const result: Record<string, string> = {};
     if (!body) return result;
 
-    for (const pair of body.split('&')) {
-      const eqIndex = pair.indexOf('=');
-      if (eqIndex === -1) continue;
-      const key = decodeURIComponent(pair.slice(0, eqIndex));
-      const value = decodeURIComponent(pair.slice(eqIndex + 1));
+    const params = new URLSearchParams(body);
+    params.forEach((value, key) => {
       result[key] = value;
-    }
+    });
 
     return result;
   }
