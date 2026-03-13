@@ -20,21 +20,45 @@ let VkPaymentsController = class VkPaymentsController {
     constructor(vkPaymentsService) {
         this.vkPaymentsService = vkPaymentsService;
     }
-    handleCallback(body) {
+    handlePostCallback(body) {
         const params = this.parseParams(body);
+        return this.processCallback(params);
+    }
+    handleGetCallback(query, res) {
+        try {
+            return this.processCallback(query);
+        }
+        catch (e) {
+            if (e.response && e.response.error_code) {
+                res.setHeader('Invocation-error', e.response.error_code.toString());
+                return e.response;
+            }
+            throw e;
+        }
+    }
+    processCallback(params) {
+        const method = params['method'];
+        if (method === 'callbacks.payment') {
+            return this.vkPaymentsService.handleOkPayment(params);
+        }
         const notificationType = params['notification_type'];
         if (!notificationType) {
             throw new common_1.BadRequestException('notification_type is missing');
         }
+        const isOk = params['site'] === 'OK';
+        let result;
         if (notificationType === 'get_item' ||
             notificationType === 'get_item_test') {
-            return this.vkPaymentsService.handleGetItem(params);
+            result = this.vkPaymentsService.handleGetItem(params);
         }
-        if (notificationType === 'order_status_change' ||
+        else if (notificationType === 'order_status_change' ||
             notificationType === 'order_status_change_test') {
-            return this.vkPaymentsService.handleOrderStatusChange(params);
+            result = this.vkPaymentsService.handleOrderStatusChange(params);
         }
-        throw new common_1.BadRequestException(`Unknown notification_type: ${notificationType}`);
+        else {
+            throw new common_1.BadRequestException(`Unknown notification_type: ${notificationType}`);
+        }
+        return isOk ? result : { response: result };
     }
     parseParams(body) {
         const result = {};
@@ -54,11 +78,21 @@ let VkPaymentsController = class VkPaymentsController {
 exports.VkPaymentsController = VkPaymentsController;
 __decorate([
     (0, common_1.Post)('callback'),
+    (0, common_1.HttpCode)(200),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Object)
-], VkPaymentsController.prototype, "handleCallback", null);
+], VkPaymentsController.prototype, "handlePostCallback", null);
+__decorate([
+    (0, common_1.Get)('callback'),
+    (0, common_1.HttpCode)(200),
+    __param(0, (0, common_1.Query)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Object)
+], VkPaymentsController.prototype, "handleGetCallback", null);
 exports.VkPaymentsController = VkPaymentsController = __decorate([
     (0, common_1.Controller)('vk'),
     __metadata("design:paramtypes", [vk_payments_service_1.VkPaymentsService])

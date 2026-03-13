@@ -8,7 +8,7 @@ import {
   HttpCode,
   Res,
 } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { VkPaymentsService } from './vk-payments.service';
 
 @Controller('vk')
