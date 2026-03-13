@@ -43,6 +43,7 @@ exports.VkPaymentsService = void 0;
 const common_1 = require("@nestjs/common");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const crypto = __importStar(require("crypto"));
 let VkPaymentsService = class VkPaymentsService {
     itemsPath = path.resolve(process.cwd(), 'items.json');
     loadItems() {
@@ -61,23 +62,61 @@ let VkPaymentsService = class VkPaymentsService {
             throw new common_1.NotFoundException(`Item "${itemId}" not found`);
         }
         return {
-            response: {
-                title: found.title,
-                price: found.price,
-                photo_url: found.photo_url,
-                discount: found.discount,
-                item_id: found.item_id,
-                expiration: found.expiration,
-            },
+            title: found.title,
+            price: found.price,
+            photo_url: found.photo_url,
+            discount: found.discount,
+            item_id: found.item_id,
+            expiration: found.expiration,
         };
     }
     handleOrderStatusChange(params) {
         const orderId = params['order_id'];
         return {
-            response: {
-                order_id: orderId ? parseInt(orderId, 10) : 0,
-            },
+            order_id: orderId ? parseInt(orderId, 10) : 0,
         };
+    }
+    handleOkPayment(params) {
+        const secretKey = 'fQp4uFpv2BVYZt1shU3W';
+        const sig = params['sig'];
+        const calculatedSig = this.calculateOkSignature(params, secretKey);
+        if (sig !== calculatedSig) {
+            throw new common_1.BadRequestException({
+                error_code: 104,
+                error_msg: 'PARAM_SIGNATURE : Invalid signature. Expected ' + calculatedSig,
+                error_data: null,
+            });
+        }
+        const amount = params['amount'];
+        const productCode = params['product_code'];
+        if (!productCode || !amount) {
+            throw new common_1.BadRequestException({
+                error_code: 1001,
+                error_msg: 'CALLBACK_INVALID_PAYMENT : Missing amount or product_code',
+                error_data: null,
+            });
+        }
+        const items = this.loadItems();
+        const found = items.find((i) => i.item_id === productCode);
+        if (!found) {
+            throw new common_1.BadRequestException({
+                error_code: 1001,
+                error_msg: `CALLBACK_INVALID_PAYMENT : Item "${productCode}" not found`,
+                error_data: null,
+            });
+        }
+        return true;
+    }
+    calculateOkSignature(params, secretKey) {
+        const keys = Object.keys(params)
+            .filter((k) => k !== 'sig')
+            .sort();
+        let str = '';
+        for (const key of keys) {
+            str += `${key}=${params[key]}`;
+        }
+        str += secretKey;
+        return crypto.createHash('md5').update(str).digest('hex').toLowerCase();
     }
 };
 exports.VkPaymentsService = VkPaymentsService;
