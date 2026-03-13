@@ -25,9 +25,22 @@ describe('VkPaymentsController', () => {
   });
 
   it('should handle OK get_item', () => {
-    const result = controller.handlePostCallback('notification_type=get_item&item=energy_pack_100&site=OK');
+    const result = controller.handlePostCallback(
+      'notification_type=get_item&item=energy_pack_100&site=OK',
+    );
     expect(result).not.toHaveProperty('response');
-    expect(result).toHaveProperty('item_id', 'energy_pack_100');
+    expect(result).toHaveProperty('name', '100 единиц энергии');
+    expect(result).toHaveProperty('code', 'energy_pack_100');
+    expect(result).toHaveProperty('imageUrl');
+  });
+
+  it('should correctly decode parameters with plus signs as spaces', () => {
+    // URLSearchParams (which we now use) should handle + as space
+    const result = controller.handlePostCallback(
+      'notification_type=get_item&item=energy_pack_100&site=OK&method=callbacks.getCustomProductInfo',
+      { setHeader: jest.fn() } as any,
+    );
+    expect(result).toHaveProperty('name', '100 единиц энергии');
   });
 
   it('should handle OK payment with valid signature', () => {

@@ -45,6 +45,16 @@ export class VkPaymentsService {
       throw new NotFoundException(`Item "${itemId}" not found`);
     }
 
+    if (params['site'] === 'OK') {
+      return {
+        name: found.title,
+        description: found.title, // Using title as description
+        price: found.price,
+        code: found.item_id,
+        imageUrl: found.photo_url,
+      };
+    }
+
     return {
       title: found.title,
       price: found.price,
