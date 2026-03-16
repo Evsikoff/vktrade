@@ -19,5 +19,15 @@
 		"discount" : 50,
 		"item_id" : "energy_pack_100_promo",
 		"expiration" : 3600
+	},
+	{
+		"id" : 3,
+		"app_id" : 54484034,
+		"title" : "25 звезд",
+		"price" : 25,
+		"photo_url" : "https:\/\/storage.yandexcloud.net\/bookguesser\/trash\/pngegg.png",
+		"discount" : 0,
+		"item_id" : "star",
+		"expiration" : 3600
 	}
 ]}
