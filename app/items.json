@@ -29,5 +29,45 @@
 		"discount" : 0,
 		"item_id" : "strar",
 		"expiration" : 3600
+	},
+	{
+		"id" : 4,
+		"app_id" : 54503308,
+		"title" : "Техно-Пакет",
+		"price" : 44,
+		"photo_url" : "https:\/\/storage.yandexcloud.net\/bookguesser\/trash\/blister_11.png",
+		"discount" : 0,
+		"item_id" : "blister_11",
+		"expiration" : 3600
+	},
+	{
+		"id" : 5,
+		"app_id" : 54503308,
+		"title" : "Умный Дом",
+		"price" : 115,
+		"photo_url" : "https:\/\/storage.yandexcloud.net\/bookguesser\/trash\/blister_15.png",
+		"discount" : 0,
+		"item_id" : "blister_15",
+		"expiration" : 3600
+	},
+	{
+		"id" : 6,
+		"app_id" : 54503308,
+		"title" : "Сингулярность",
+		"price" : 295,
+		"photo_url" : "https:\/\/storage.yandexcloud.net\/bookguesser\/trash\/blister_20.png",
+		"discount" : 0,
+		"item_id" : "blister_20",
+		"expiration" : 3600
+	},
+	{
+		"id" : 7,
+		"app_id" : 54503308,
+		"title" : "Умный Дом за половину цены",
+		"price" : 57,
+		"photo_url" : "https:\/\/storage.yandexcloud.net\/bookguesser\/trash\/blister_15_discount.png",
+		"discount" : 50,
+		"item_id" : "blister_15_discount",
+		"expiration" : 3600
 	}
 ]}
