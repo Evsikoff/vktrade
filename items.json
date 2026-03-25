@@ -69,5 +69,25 @@
 		"discount" : 50,
 		"item_id" : "blister_15_discount",
 		"expiration" : 3600
+	},
+	{
+		"id" : 8,
+		"app_id" : 54506500,
+		"title" : "100 единиц энергии",
+		"price" : 10,
+		"photo_url" : "https:\/\/storage.yandexcloud.net\/bookguesser\/trash\/bg2_energy.png",
+		"discount" : 0,
+		"item_id" : "energy_100",
+		"expiration" : 3600
+	},
+	{
+		"id" : 9,
+		"app_id" : 54506500,
+		"title" : "100 единиц энергии",
+		"price" : 5,
+		"photo_url" : "https:\/\/storage.yandexcloud.net\/bookguesser\/trash\/bg2_energy.png",
+		"discount" : 5,
+		"item_id" : "energy_100_promo",
+		"expiration" : 3600
 	}
 ]}
