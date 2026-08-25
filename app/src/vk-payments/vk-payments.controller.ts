@@ -9,27 +9,60 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { VkPaymentsService } from './vk-payments.service';
+import {
+  VkPaymentsService,
+  type VerifyRequest,
+  type VerifyResponse,
+} from './vk-payments.service';
+
+type CallbackResult = object | boolean;
+type InvocationError = Record<string, unknown> & {
+  error_code: string | number;
+};
+
+function invocationError(error: unknown): InvocationError | null {
+  if (!error || typeof error !== 'object' || !('response' in error))
+    return null;
+  const response = (error as { response?: unknown }).response;
+  if (
+    !response ||
+    typeof response !== 'object' ||
+    !('error_code' in response)
+  ) {
+    return null;
+  }
+  const code = (response as { error_code?: unknown }).error_code;
+  return typeof code === 'string' || typeof code === 'number'
+    ? (response as InvocationError)
+    : null;
+}
 
 @Controller('vk')
 export class VkPaymentsController {
   constructor(private readonly vkPaymentsService: VkPaymentsService) {}
+
+  @Post('verify')
+  @HttpCode(200)
+  verifyOrder(@Body() body: VerifyRequest): VerifyResponse {
+    return this.vkPaymentsService.handleVerify(body);
+  }
 
   @Post('callback')
   @HttpCode(200)
   handlePostCallback(
     @Body() body: string,
     @Res({ passthrough: true }) res: Response,
-  ): object {
+  ): CallbackResult {
     const params = this.parseParams(body);
     try {
       return this.processCallback(params);
-    } catch (e: any) {
-      if (params['site'] === 'OK' && e.response && e.response.error_code) {
-        res.setHeader('Invocation-error', e.response.error_code.toString());
-        return e.response;
+    } catch (error: unknown) {
+      const response = invocationError(error);
+      if (params['site'] === 'OK' && response) {
+        res.setHeader('Invocation-error', String(response.error_code));
+        return response;
       }
-      throw e;
+      throw error;
     }
   }
 
@@ -38,19 +71,20 @@ export class VkPaymentsController {
   handleGetCallback(
     @Query() query: Record<string, string>,
     @Res({ passthrough: true }) res: Response,
-  ): any {
+  ): CallbackResult {
     try {
       return this.processCallback(query);
-    } catch (e: any) {
-      if (e.response && e.response.error_code) {
-        res.setHeader('Invocation-error', e.response.error_code.toString());
-        return e.response;
+    } catch (error: unknown) {
+      const response = invocationError(error);
+      if (response) {
+        res.setHeader('Invocation-error', String(response.error_code));
+        return response;
       }
-      throw e;
+      throw error;
     }
   }
 
-  private processCallback(params: Record<string, string>): any {
+  private processCallback(params: Record<string, string>): CallbackResult {
     const method = params['method'];
     if (method === 'callbacks.payment') {
       return this.vkPaymentsService.handleOkPayment(params);
@@ -62,7 +96,7 @@ export class VkPaymentsController {
     }
 
     const isOk = params['site'] === 'OK';
-    let result: any;
+    let result: object;
 
     if (
       notificationType === 'get_item' ||

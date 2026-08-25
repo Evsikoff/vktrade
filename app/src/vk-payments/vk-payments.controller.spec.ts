@@ -1,25 +1,80 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VkPaymentsController } from './vk-payments.controller';
 import { VkPaymentsService } from './vk-payments.service';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import type { Response } from 'express';
+
+const VK_APP_ID = '54729341';
+const VK_APP_SECRET = 'test-protected-key';
+
+function paymentSignature(params: Record<string, string>): string {
+  const source = Object.keys(params)
+    .sort()
+    .map((key) => `${key}=${params[key]}`)
+    .join('');
+  return crypto
+    .createHash('md5')
+    .update(source + VK_APP_SECRET)
+    .digest('hex');
+}
+
+function signedLaunch(userId: string): Record<string, string> {
+  const launch: Record<string, string> = {
+    vk_app_id: VK_APP_ID,
+    vk_user_id: userId,
+    vk_language: 'ru',
+  };
+  const query = new URLSearchParams();
+  Object.keys(launch)
+    .sort()
+    .forEach((key) => query.append(key, launch[key]));
+  const sign = crypto
+    .createHmac('sha256', VK_APP_SECRET)
+    .update(query.toString())
+    .digest('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  return { ...launch, sign };
+}
 
 describe('VkPaymentsController', () => {
   let controller: VkPaymentsController;
-  let service: VkPaymentsService;
+  let ordersPath: string;
 
   beforeEach(async () => {
+    ordersPath = path.join(
+      os.tmpdir(),
+      `vktrade-orders-${process.pid}-${Date.now()}-${Math.random()}.json`,
+    );
+    process.env.VK_ORDERS_FILE = ordersPath;
+    process.env[`VK_APP_SECRET_${VK_APP_ID}`] = VK_APP_SECRET;
     const module: TestingModule = await Test.createTestingModule({
       controllers: [VkPaymentsController],
       providers: [VkPaymentsService],
     }).compile();
 
     controller = module.get<VkPaymentsController>(VkPaymentsController);
-    service = module.get<VkPaymentsService>(VkPaymentsService);
+  });
+
+  afterEach(() => {
+    delete process.env.VK_ORDERS_FILE;
+    delete process.env[`VK_APP_SECRET_${VK_APP_ID}`];
+    try {
+      fs.unlinkSync(ordersPath);
+    } catch {
+      // A read-only test does not create the ledger.
+    }
   });
 
   it('should handle VK get_item', () => {
-    const result = controller.handlePostCallback('notification_type=get_item&item=energy_pack_100');
+    const result = controller.handlePostCallback(
+      'notification_type=get_item&item=energy_pack_100',
+    );
     expect(result).toHaveProperty('response');
     expect(result['response']).toHaveProperty('item_id', 'energy_pack_100');
   });
@@ -38,7 +93,7 @@ describe('VkPaymentsController', () => {
     // URLSearchParams (which we now use) should handle + as space
     const result = controller.handlePostCallback(
       'notification_type=get_item&item=energy_pack_100&site=OK&method=callbacks.getCustomProductInfo',
-      { setHeader: jest.fn() } as any,
+      { setHeader: jest.fn() } as unknown as Response,
     );
     expect(result).toHaveProperty('name', '100 единиц энергии');
   });
@@ -58,10 +113,16 @@ describe('VkPaymentsController', () => {
       str += `${key}=${params[key]}`;
     }
     str += secretKey;
-    const sig = crypto.createHash('md5').update(str).digest('hex').toLowerCase();
+    const sig = crypto
+      .createHash('md5')
+      .update(str)
+      .digest('hex')
+      .toLowerCase();
 
     const query = { ...params, sig };
-    const result = controller.handleGetCallback(query, { setHeader: jest.fn() } as any);
+    const result = controller.handleGetCallback(query, {
+      setHeader: jest.fn(),
+    } as unknown as Response);
     expect(result).toBe(true);
   });
 
@@ -73,10 +134,11 @@ describe('VkPaymentsController', () => {
       sig: 'wrong_sig',
     };
 
-    const res = { setHeader: jest.fn() } as any;
+    const setHeader = jest.fn();
+    const res = { setHeader } as unknown as Response;
     const result = controller.handleGetCallback(query, res);
 
-    expect(res.setHeader).toHaveBeenCalledWith('Invocation-error', '104');
+    expect(setHeader).toHaveBeenCalledWith('Invocation-error', '104');
     expect(result).toHaveProperty('error_code', 104);
   });
 
@@ -94,16 +156,83 @@ describe('VkPaymentsController', () => {
       str += `${key}=${params[key]}`;
     }
     str += secretKey;
-    const sig = crypto.createHash('md5')
+    const sig = crypto
+      .createHash('md5')
       .update(str)
       .digest('hex')
       .toLowerCase();
 
     const query = { ...params, sig };
-    const res = { setHeader: jest.fn() } as any;
+    const setHeader = jest.fn();
+    const res = { setHeader } as unknown as Response;
     const result = controller.handleGetCallback(query, res);
 
-    expect(res.setHeader).toHaveBeenCalledWith('Invocation-error', '1001');
+    expect(setHeader).toHaveBeenCalledWith('Invocation-error', '1001');
     expect(result).toHaveProperty('error_code', 1001);
+  });
+
+  it('records a signed VK order and returns it from /vk/verify', () => {
+    const params: Record<string, string> = {
+      notification_type: 'order_status_change_test',
+      app_id: VK_APP_ID,
+      user_id: '494075',
+      item: 'ants_lives_refill',
+      item_price: '1',
+      order_id: '1001',
+      status: 'chargeable',
+    };
+    const body = new URLSearchParams({
+      ...params,
+      sig: paymentSignature(params),
+    }).toString();
+
+    const callback = controller.handlePostCallback(body, {
+      setHeader: jest.fn(),
+    } as unknown as Response);
+    expect(callback).toEqual({
+      response: { order_id: 1001, app_order_id: 1001 },
+    });
+
+    const verified = controller.verifyOrder({
+      item: 'ants_lives_refill',
+      launch: signedLaunch('494075'),
+    });
+    expect(verified.granted).toBe(true);
+    expect(verified.orders).toEqual([
+      expect.objectContaining({
+        order_id: '1001',
+        item: 'ants_lives_refill',
+        status: 'confirmed',
+      }),
+    ]);
+  });
+
+  it('keeps legacy VK products working when their secret is not configured', () => {
+    const body = new URLSearchParams({
+      notification_type: 'order_status_change',
+      app_id: '54475142',
+      user_id: '42',
+      item: 'energy_pack_100',
+      order_id: '3001',
+      status: 'chargeable',
+    }).toString();
+
+    expect(
+      controller.handlePostCallback(body, {
+        setHeader: jest.fn(),
+      } as unknown as Response),
+    ).toEqual({ response: { order_id: 3001, app_order_id: 3001 } });
+  });
+
+  it('rejects /vk/verify when the launch signature is invalid', () => {
+    expect(() =>
+      controller.verifyOrder({
+        item: 'ants_lives_refill',
+        launch: {
+          ...signedLaunch('494075'),
+          sign: 'invalid',
+        },
+      }),
+    ).toThrow(BadRequestException);
   });
 });

@@ -1,0 +1,5 @@
+/vk-orders.json
+/vk-orders.json.*.tmp
+/app/vk-orders.json
+/app/vk-orders.json.*.tmp
+/app/dist/
