@@ -89,5 +89,35 @@
 		"discount" : 5,
 		"item_id" : "energy_100_promo",
 		"expiration" : 3600
+	},
+	{
+		"id" : 10,
+		"app_id" : 54729341,
+		"title" : "Полный запас жизней",
+		"price" : 1,
+		"photo_url" : "https:\/\/storage.yandexcloud.net\/bookguesser\/trash\/bg2_energy.png",
+		"discount" : 0,
+		"item_id" : "ants_lives_refill",
+		"expiration" : 3600
+	},
+	{
+		"id" : 11,
+		"app_id" : 54729341,
+		"title" : "Полный запас жизней",
+		"price" : 5,
+		"photo_url" : "https:\/\/storage.yandexcloud.net\/bookguesser\/trash\/blister_20.png",
+		"discount" : 0,
+		"item_id" : "ants_lives_unlimited_24h",
+		"expiration" : 3600
+	},
+	{
+		"id" : 12,
+		"app_id" : 54729341,
+		"title" : "Без рекламы навсегда",
+		"price" : 20,
+		"photo_url" : "https:\/\/storage.yandexcloud.net\/bookguesser\/trash\/blister_20.png",
+		"discount" : 0,
+		"item_id" : "ants_no_ads",
+		"expiration" : 3600
 	}
 ]}
