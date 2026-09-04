@@ -119,5 +119,35 @@
 		"discount" : 0,
 		"item_id" : "ants_no_ads",
 		"expiration" : 3600
+	},
+		{
+		"id" : 13,
+		"app_id" : 54754575,
+		"title" : "+ 10 л. бенза",
+		"price" : 2,
+		"photo_url" : "https://storage.yandexcloud.net/kharch/img/fuel10l.png",
+		"discount" : 0,
+		"item_id" : "fuel10l",
+		"expiration" : 3600
+	},
+		{
+		"id" : 14,
+		"app_id" : 54754575,
+		"title" : "Немного денег",
+		"price" : 2,
+		"photo_url" : "https://storage.yandexcloud.net/kharch/img/money0.25.png",
+		"discount" : 0,
+		"item_id" : "money025",
+		"expiration" : 3600
+	},
+		{
+		"id" : 15,
+		"app_id" : 54754575,
+		"title" : "Большой грант",
+		"price" : 4,
+		"photo_url" : "https://storage.yandexcloud.net/kharch/img/money0.5.png",
+		"discount" : 0,
+		"item_id" : "money05",
+		"expiration" : 3600
 	}
 ]}
