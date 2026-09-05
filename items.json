@@ -122,7 +122,7 @@
 	},
 		{
 		"id" : 13,
-		"app_id" : 54754575,
+		"app_id" : 54755497,
 		"title" : "+ 10 л. бенза",
 		"price" : 2,
 		"photo_url" : "https://storage.yandexcloud.net/kharch/img/fuel10l.png",
@@ -132,7 +132,7 @@
 	},
 		{
 		"id" : 14,
-		"app_id" : 54754575,
+		"app_id" : 54755497,
 		"title" : "Немного денег",
 		"price" : 2,
 		"photo_url" : "https://storage.yandexcloud.net/kharch/img/money0.25.png",
@@ -142,7 +142,7 @@
 	},
 		{
 		"id" : 15,
-		"app_id" : 54754575,
+		"app_id" : 54755497,
 		"title" : "Большой грант",
 		"price" : 4,
 		"photo_url" : "https://storage.yandexcloud.net/kharch/img/money0.5.png",
